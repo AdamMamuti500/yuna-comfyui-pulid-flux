@@ -37,10 +37,10 @@ RUN if [ -f /comfyui/custom_nodes/ComfyUI-PuLID-Flux/requirements.txt ]; then \
 # -----------------------------------------------------------
 RUN mkdir -p /comfyui/models/pulid \
     && wget -q --no-check-certificate \
-        -O /comfyui/models/pulid/pulid_flux_v0.9.1.safetensors \
-        https://huggingface.co/balazik/pulid_flux/resolve/main/pulid_flux_v0.9.1.safetensors \
+        -O /comfyui/models/pulid/pulid_flux_v0.9.0.safetensors \
+        https://huggingface.co/guozinan/PuLID/resolve/main/pulid_flux_v0.9.0.safetensors \
     && ls -lh /comfyui/models/pulid/ \
-    && echo "=== pulid_flux_v0.9.1.safetensors OK ==="
+    && echo "=== pulid_flux_v0.9.0.safetensors OK ==="
 
 # -----------------------------------------------------------
 # 4. EVA-CLIP model
@@ -91,7 +91,7 @@ if missing:
     raise RuntimeError(f"Missing antelopev2 files: {missing}")
 print("insightface antelopev2: all 5 files verified")
 for path, label in [
-    ("/comfyui/models/pulid/pulid_flux_v0.9.1.safetensors", "pulid_flux"),
+    ("/comfyui/models/pulid/pulid_flux_v0.9.0.safetensors", "pulid_flux"),
     ("/comfyui/models/clip/EVA02_CLIP_L_336_psz14_s6B.pt", "EVA-CLIP"),
 ]:
     if not os.path.exists(path):
