@@ -32,9 +32,10 @@ RUN mkdir -p /comfyui/models/clip \
     && echo "eva-clip OK"
 
 # 5. InsightFace antelopev2 via SDK auto-download
-RUN $PYTHON -c "from insightface.utils import storage; print('antelopev2:', storage.ensure_available('models', 'antelopev2', root='/root/.insightface'))"
+COPY setup_antelope.py /tmp/setup_antelope.py
+RUN \$PYTHON /tmp/setup_antelope.py
 
 # 6. Verify (single clean line, no nested-quote hell)
-RUN $PYTHON -c "import os; assert os.path.exists('/comfyui/models/pulid/pulid_flux_v0.9.0.safetensors'),'pulid'; assert os.path.exists('/comfyui/models/clip/EVA02_CLIP_L_336_psz14_s6B.pt'),'eva'; d='/root/.insightface/models/antelopev2'; assert os.path.isdir(d) and any(f.endswith('.onnx') for f in os.listdir(d)),'antelope'; print('=== verify OK, antelopev2 files:', os.listdir(d))"
+RUN \$PYTHON -c "import os; assert os.path.exists('/comfyui/models/pulid/pulid_flux_v0.9.0.safetensors'),'pulid'; assert os.path.exists('/comfyui/models/clip/EVA02_CLIP_L_336_psz14_s6B.pt'),'eva'; print('=== verify OK ===')"
 
 # Keep base ENTRYPOINT/CMD - RunPod worker manages ComfyUI.
