@@ -32,7 +32,7 @@ RUN mkdir -p /comfyui/models/clip \
     && echo "eva-clip OK"
 
 # 5. InsightFace antelopev2 via SDK auto-download
-RUN $PYTHON -c "from insightface.app import FaceAnalysis; FaceAnalysis(name='antelopev2', root='/root/.insightface').prepare(ctx_id=-1, det_size=(640,640)); print('antelopev2 downloaded')"
+RUN $PYTHON -c "from insightface.utils import storage; print('antelopev2:', storage.ensure_available('models', 'antelopev2', root='/root/.insightface'))"
 
 # 6. Verify (single clean line, no nested-quote hell)
 RUN $PYTHON -c "import os,insightface; assert os.path.exists('/comfyui/models/pulid/pulid_flux_v0.9.0.safetensors'),'pulid'; assert os.path.exists('/comfyui/models/clip/EVA02_CLIP_L_336_psz14_s6B.pt'),'eva'; assert os.path.exists('/root/.insightface/models/antelopev2/det_10g.onnx'),'antelope'; print('=== PuLID build verify OK ===')"
