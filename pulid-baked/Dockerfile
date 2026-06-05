@@ -1,6 +1,6 @@
 # Yuna ComfyUI PuLID Flux baked image.
 # Base: yuna-comfyui-impact (Impact Pack + FaceDetailer + SAM).
-# Adds PuLID Flux custom node (lldacing fork) + public model weights.
+# Adds PuLID Flux (balazik/ComfyUI-PuLID-Flux, 712⭐) for FLUX.1-dev + public weights.
 # No Yuna LoRA, no gold references, no private tokens baked in.
 FROM ghcr.io/adammamuti500/yuna-comfyui-impact:2026-06-04-base
 
@@ -12,36 +12,39 @@ ENV PYTHON=/opt/venv/bin/python3
 WORKDIR /comfyui
 
 # -----------------------------------------------------------
-# 1. PuLID Flux custom node (lldacing fork — maintained, compatible with FLUX.1-dev)
+# 1. PuLID Flux custom node (balazik/ComfyUI-PuLID-Flux, 712⭐)
+#    FLUX.1-dev compatible. Node names:
+#      PulidFluxModelLoader, PulidFluxInsightFaceLoader,
+#      PulidFluxEvaClipLoader, ApplyPulidFlux
 # -----------------------------------------------------------
 RUN cd /comfyui/custom_nodes \
     && git clone --quiet --recursive \
-        https://github.com/lldacing/ComfyUI_PuLID_Flux.git \
-    && echo "=== PuLID Flux cloned ==="
+        https://github.com/balazik/ComfyUI-PuLID-Flux.git \
+    && echo "=== PuLID Flux (balazik) cloned ==="
 
 # -----------------------------------------------------------
 # 2. PuLID Python dependencies
 # -----------------------------------------------------------
-RUN if [ -f /comfyui/custom_nodes/ComfyUI_PuLID_Flux/requirements.txt ]; then \
-        $PIP install --no-cache-dir -r /comfyui/custom_nodes/ComfyUI_PuLID_Flux/requirements.txt; \
+RUN if [ -f /comfyui/custom_nodes/ComfyUI-PuLID-Flux/requirements.txt ]; then \
+        $PIP install --no-cache-dir -r /comfyui/custom_nodes/ComfyUI-PuLID-Flux/requirements.txt; \
     fi \
     && $PIP install --no-cache-dir insightface onnxruntime \
     && echo "=== PuLID deps installed ==="
 
 # -----------------------------------------------------------
 # 3. PuLID model weights
-#    pulid_flux_v0.9.1.safetensors — the main PuLID Flux adapter
+#    pulid_flux_v0.9.1.safetensors — FLUX.1-dev adapter (700MB)
 # -----------------------------------------------------------
 RUN mkdir -p /comfyui/models/pulid \
     && wget -q --no-check-certificate \
         -O /comfyui/models/pulid/pulid_flux_v0.9.1.safetensors \
-        https://huggingface.co/lldacing/pulid_flux_v0.9.1/resolve/main/pulid_flux_v0.9.1.safetensors \
+        https://huggingface.co/balazik/pulid_flux/resolve/main/pulid_flux_v0.9.1.safetensors \
     && ls -lh /comfyui/models/pulid/ \
-    && echo "=== pulid_flux_v0.9.1 OK ==="
+    && echo "=== pulid_flux_v0.9.1.safetensors OK ==="
 
 # -----------------------------------------------------------
 # 4. EVA-CLIP model
-#    EVA02_CLIP_L_336_psz14_s6B.pt — required by PuLID for text+image conditioning
+#    EVA02_CLIP_L_336_psz14_s6B.pt — for text+image conditioning
 # -----------------------------------------------------------
 RUN mkdir -p /comfyui/models/clip \
     && wget -q --no-check-certificate \
@@ -51,9 +54,8 @@ RUN mkdir -p /comfyui/models/clip \
     && echo "=== EVA-CLIP OK ==="
 
 # -----------------------------------------------------------
-# 5. InsightFace antelopev2 — ALL 5 ONNX files (detection + recognition + landmarks + gender/age)
+# 5. InsightFace antelopev2 (ALL 5 ONNX files)
 #    PuLID Flux needs these for face embedding extraction.
-#    Missing any of these → runtime crash at insightface model load.
 # -----------------------------------------------------------
 RUN mkdir -p /root/.insightface/models/antelopev2 \
     && wget -q --no-check-certificate \
@@ -75,7 +77,7 @@ RUN mkdir -p /root/.insightface/models/antelopev2 \
     && echo "=== antelopev2 (5/5) OK ==="
 
 # -----------------------------------------------------------
-# 6. Verify PuLID + insightface imports
+# 6. Verify build
 # -----------------------------------------------------------
 RUN $PYTHON << 'PYEOF'
 import insightface
@@ -95,7 +97,7 @@ for path, label in [
     if not os.path.exists(path):
         raise RuntimeError(f"Missing {label}: {path}")
     print(f"{label}: OK ({os.path.getsize(path)} bytes)")
-print("=== PuLID build verification PASSED ===")
+print("=== PuLID Flux build verification PASSED ===")
 PYEOF
 
 # -----------------------------------------------------------
@@ -104,7 +106,7 @@ PYEOF
 RUN echo "=== Model weights disk ===" \
     && du -sh /comfyui/models/pulid/ \
     && du -sh /comfyui/models/clip/ \
-    && du -sh /root/.insightface/models/antelopev2/ \
+    && du -sh /root/.insightface/ \
     && echo "=== Total ===" \
     && du -sh / | tail -1
 
