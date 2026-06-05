@@ -77,28 +77,26 @@ RUN mkdir -p /root/.insightface/models/antelopev2 \
 # -----------------------------------------------------------
 # 6. Verify PuLID + insightface imports
 # -----------------------------------------------------------
-RUN $PYTHON -c "
+RUN $PYTHON -c '
 import insightface
 import onnxruntime
 import os
-# Verify all 5 antelopev2 files
-model_dir = '/root/.insightface/models/antelopev2'
+model_dir = "/root/.insightface/models/antelopev2"
 files = set(os.listdir(model_dir))
-expected = {'1k3d68.onnx', '2d106det.onnx', 'det_10g.onnx', 'genderage.onnx', 'w600k_r50.onnx'}
+expected = {"1k3d68.onnx", "2d106det.onnx", "det_10g.onnx", "genderage.onnx", "w600k_r50.onnx"}
 missing = expected - files
 if missing:
-    raise RuntimeError(f'Missing antelopev2 files: {missing}')
-print('insightface antelopev2: all 5 files verified')
-# Verify pulid and clip weights exist
+    raise RuntimeError(f"Missing antelopev2 files: {missing}")
+print("insightface antelopev2: all 5 files verified")
 for path, label in [
-    ('/comfyui/models/pulid/pulid_flux_v0.9.1.safetensors', 'pulid_flux'),
-    ('/comfyui/models/clip/EVA02_CLIP_L_336_psz14_s6B.pt', 'EVA-CLIP'),
+    ("/comfyui/models/pulid/pulid_flux_v0.9.1.safetensors", "pulid_flux"),
+    ("/comfyui/models/clip/EVA02_CLIP_L_336_psz14_s6B.pt", "EVA-CLIP"),
 ]:
     if not os.path.exists(path):
-        raise RuntimeError(f'Missing {label}: {path}')
-    print(f'{label}: OK ({os.path.getsize(path)} bytes)')
-print('=== PuLID build verification PASSED ===')
-"
+        raise RuntimeError(f"Missing {label}: {path}")
+    print(f"{label}: OK ({os.path.getsize(path)} bytes)")
+print("=== PuLID build verification PASSED ===")
+'
 
 # -----------------------------------------------------------
 # 7. Disk usage
