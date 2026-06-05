@@ -55,26 +55,24 @@ RUN mkdir -p /comfyui/models/clip \
 
 # -----------------------------------------------------------
 # 5. InsightFace antelopev2 (ALL 5 ONNX files)
-#    PuLID Flux needs these for face embedding extraction.
+#    Use insightface SDK to download models (handles auth/redirects).
+#    Alternative: direct download from Google Drive if SDK fails.
 # -----------------------------------------------------------
-RUN mkdir -p /root/.insightface/models/antelopev2 \
-    && wget -q --no-check-certificate \
-        -O /root/.insightface/models/antelopev2/1k3d68.onnx \
-        https://huggingface.co/monster-labs/insightface/resolve/main/antelopev2/1k3d68.onnx \
-    && wget -q --no-check-certificate \
-        -O /root/.insightface/models/antelopev2/2d106det.onnx \
-        https://huggingface.co/monster-labs/insightface/resolve/main/antelopev2/2d106det.onnx \
-    && wget -q --no-check-certificate \
-        -O /root/.insightface/models/antelopev2/det_10g.onnx \
-        https://huggingface.co/monster-labs/insightface/resolve/main/antelopev2/det_10g.onnx \
-    && wget -q --no-check-certificate \
-        -O /root/.insightface/models/antelopev2/genderage.onnx \
-        https://huggingface.co/monster-labs/insightface/resolve/main/antelopev2/genderage.onnx \
-    && wget -q --no-check-certificate \
-        -O /root/.insightface/models/antelopev2/w600k_r50.onnx \
-        https://huggingface.co/monster-labs/insightface/resolve/main/antelopev2/w600k_r50.onnx \
-    && ls -lh /root/.insightface/models/antelopev2/ \
-    && echo "=== antelopev2 (5/5) OK ==="
+RUN $PYTHON << 'PYEOF'
+import insightface
+import os
+# Trigger antelopev2 download via FaceAnalysis
+app = insightface.app.FaceAnalysis(name='antelopev2', root='/root/.insightface', providers=['CPUExecutionProvider'])
+app.prepare(ctx_id=-1, det_size=(640, 640))
+dir = '/root/.insightface/models/antelopev2'
+files = os.listdir(dir)
+expected = {'1k3d68.onnx', '2d106det.onnx', 'det_10g.onnx', 'genderage.onnx', 'w600k_r50.onnx'}
+found = set(files)
+missing = expected - found
+if missing:
+    raise RuntimeError(f'antelopev2 download incomplete, missing: {missing}')
+print(f'antelopev2: {len(files)} files, all 5 present')
+PYEOF"
 
 # -----------------------------------------------------------
 # 6. Verify build
@@ -84,6 +82,7 @@ import insightface
 import onnxruntime
 import os
 model_dir = "/root/.insightface/models/antelopev2"
+
 files = set(os.listdir(model_dir))
 expected = {"1k3d68.onnx", "2d106det.onnx", "det_10g.onnx", "genderage.onnx", "w600k_r50.onnx"}
 missing = expected - files
