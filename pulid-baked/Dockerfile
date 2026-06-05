@@ -28,7 +28,7 @@ RUN cd /comfyui/custom_nodes \
 RUN if [ -f /comfyui/custom_nodes/ComfyUI-PuLID-Flux/requirements.txt ]; then \
         $PIP install --no-cache-dir -r /comfyui/custom_nodes/ComfyUI-PuLID-Flux/requirements.txt; \
     fi \
-    && $PIP install --no-cache-dir insightface onnxruntime \
+    && $PIP install --no-cache-dir insightface onnxruntime facexlib \
     && echo "=== PuLID deps installed ==="
 
 # -----------------------------------------------------------
