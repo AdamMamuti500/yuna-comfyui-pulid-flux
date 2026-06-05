@@ -1,0 +1,11 @@
+# PuLID Flux assets: .gitignore + .dockerignore
+# Exclude everything except what we need for the Docker build
+
+# Docker build context
+pulid-baked/Dockerfile
+
+# Git ignore
+.github/
+README.md
+workflow-notes.md
+weight-manifest.md
