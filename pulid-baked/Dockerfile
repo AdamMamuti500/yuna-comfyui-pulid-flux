@@ -77,7 +77,7 @@ RUN mkdir -p /root/.insightface/models/antelopev2 \
 # -----------------------------------------------------------
 # 6. Verify PuLID + insightface imports
 # -----------------------------------------------------------
-RUN $PYTHON -c '
+RUN $PYTHON << 'PYEOF'
 import insightface
 import onnxruntime
 import os
@@ -96,7 +96,7 @@ for path, label in [
         raise RuntimeError(f"Missing {label}: {path}")
     print(f"{label}: OK ({os.path.getsize(path)} bytes)")
 print("=== PuLID build verification PASSED ===")
-'
+PYEOF
 
 # -----------------------------------------------------------
 # 7. Disk usage
